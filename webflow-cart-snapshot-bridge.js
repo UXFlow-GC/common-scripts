@@ -172,14 +172,14 @@
 
     var text = cartItem.textContent || "";
     var prices = text.match(/[$€£¥]?\s?\d[\d,]*(?:\.\d{2})?/g) || [];
+
     var parsedPrices = prices.map(parseMoney).filter(function (value) {
       return value > 0;
     });
 
     if (!parsedPrices.length) return 0;
 
-    var likelyLineTotal = parsedPrices[parsedPrices.length - 1];
-    return roundMoney(likelyLineTotal / Math.max(quantity || 1, 1));
+    return roundMoney(parsedPrices[parsedPrices.length - 1]);
   }
 
   function scheduleSync(delay) {
