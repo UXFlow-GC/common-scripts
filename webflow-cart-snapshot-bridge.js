@@ -74,7 +74,10 @@
 
   function bindCartDrawerEvents() {
     document.addEventListener("click", function (event) {
-      if (event.target.closest(config.addToCartButtonSelector)) {
+      var addButton = event.target.closest(config.addToCartButtonSelector);
+
+      if (addButton) {
+        trackProductAddedToCart(addButton);
         scheduleSync(350);
         scheduleSync(1000);
       }
@@ -180,6 +183,34 @@
     if (!parsedPrices.length) return 0;
 
     return roundMoney(parsedPrices[parsedPrices.length - 1]);
+  }
+
+  function trackProductAddedToCart(button) {
+    if (!window.Omni || typeof window.Omni.trackProductAddedToCart !== "function") {
+      return;
+    }
+
+    var quantity = 1;
+    var form = button.closest("form");
+
+    if (form) {
+      var quantityInput = form.querySelector("input[type='number'][name*='quantity' i]");
+      quantity = toPositiveInteger(quantityInput && quantityInput.value, 1);
+    }
+
+    var price = parseMoney(button.dataset.cartProductPrice);
+
+    window.Omni.trackProductAddedToCart({
+      product_id: button.dataset.cartProductId || "",
+      variant_id: button.dataset.cartVariantId || "",
+      product_name: button.dataset.cartProductName || "",
+      quantity: quantity,
+      price: price,
+      total_price: roundMoney(price * quantity),
+      currency: button.dataset.cartProductCurrency || config.currency
+    }).catch(function (error) {
+      warn("product_added_to_cart failed", error);
+    });
   }
 
   function scheduleSync(delay) {
